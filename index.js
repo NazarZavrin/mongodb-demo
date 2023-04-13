@@ -8,17 +8,19 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const PORT = process.env.PORT ?? 3000;
 let database;
 
-app.get("/", async (req, res, next) => {
-    try {
-        await client.connect();
-        database = client.db("company");
-        next();
-    } catch (error) {
-        console.log(error);
-        await client.close();
-        res.sendFile(path.join(path.resolve(), "site", "error.html"));
+app.use(async (req, res, next) => {
+    if (database === undefined) {
+        try {
+            await client.connect();
+            database = client.db("company");
+        } catch (error) {
+            console.log(error);
+            await client.close();
+            res.sendFile(path.join(path.resolve(), "site", "error.html"));
+        }
     }
-})
+    next();
+});
 
 app.use(express.static(path.join(path.resolve(), 'site')));
 
